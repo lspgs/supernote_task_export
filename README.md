@@ -19,7 +19,7 @@ No external dependencies are required!
 ## Usage
 
 ```bash
-python sqlite-to-todoist.py /path/to/your/database.db [output_file.csv]
+python supternotetask-to-todoist.py /path/to/your/supernote_task_database.db [output_file.csv]
 ```
 
 If you don't specify an output file, it will create `todoist_import.csv` in the current directory.
