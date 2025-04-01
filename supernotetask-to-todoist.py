@@ -17,6 +17,8 @@ import csv
 import datetime
 import os
 import sys
+import base64
+import json
 
 def connect_to_db(db_path):
     """Connect to the SQLite database."""
@@ -51,31 +53,26 @@ def convert_timestamp_to_date(timestamp_ms):
     # Format according to Todoist expectations (e.g., "Apr 1 2025")
     return task_date.strftime("%b %d %Y")
 
-def map_priority(priority_value):
-    """
-    Map priority from the database to Todoist's priority system (1-4).
-    
-    Todoist priority:
-    4 = Highest priority (p1 in Todoist)
-    3 = High priority (p2 in Todoist)
-    2 = Medium priority (p3 in Todoist)
-    1 = Low/no priority (p4 in Todoist)
-    """
-    if not priority_value:
-        return 1
+def decode_metadata(metadata_base64):
+    """Decode Base64 encoded metadata to extract file path and page."""
+    if not metadata_base64:
+        return "", ""
     
     try:
-        priority = int(priority_value)
-        if priority >= 7:
-            return 4  # Highest
-        elif priority >= 5:
-            return 3  # High
-        elif priority >= 3:
-            return 2  # Medium
-        else:
-            return 1  # Low
-    except (ValueError, TypeError):
-        return 1  # Default to low priority
+        # Decode Base64 to bytes, then convert to string
+        metadata_json = base64.b64decode(metadata_base64).decode('utf-8')
+        
+        # Parse JSON
+        metadata = json.loads(metadata_json)
+        
+        # Extract file path and page
+        file_path = metadata.get('filePath', '')
+        page = metadata.get('page', '')
+        
+        return file_path, page
+    except Exception as e:
+        print(f"Warning: Could not decode metadata: {e}")
+        return "", ""
 
 def create_todoist_csv(tasks, output_file):
     """Create a CSV file formatted for Todoist import."""
@@ -85,10 +82,10 @@ def create_todoist_csv(tasks, output_file):
     DUE_DATE_POS = 5
     STATUS_POS = 8
     REMINDER_DATE_POS = 9
-    PRIORITY_POS = 15  # Using position 15 as potential priority indicator
+    METADATA_POS = 12  # Base64 encoded metadata
     
     # Todoist CSV headers
-    headers = ['TYPE', 'CONTENT', 'PRIORITY', 'DATE']
+    headers = ['TYPE', 'CONTENT', 'DESCRIPTION', 'PRIORITY', 'DATE']
     
     try:
         with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
@@ -99,6 +96,15 @@ def create_todoist_csv(tasks, output_file):
                 # Get task description (content)
                 content = task[TASK_CONTENT_POS] if task[TASK_CONTENT_POS] else "Untitled Task"
                 
+                # Extract metadata for description
+                description = ""
+                if len(task) > METADATA_POS and task[METADATA_POS]:
+                    file_path, page = decode_metadata(task[METADATA_POS])
+                    if file_path:
+                        # Extract just the filename from the path
+                        file_name = os.path.basename(file_path)
+                        description = f"Supernote Source: {file_name}, Page: {page}"
+                
                 # Get due date
                 due_date = ""
                 if task[DUE_DATE_POS]:
@@ -108,16 +114,12 @@ def create_todoist_csv(tasks, output_file):
                 if not due_date and task[REMINDER_DATE_POS]:
                     due_date = convert_timestamp_to_date(task[REMINDER_DATE_POS])
                 
-                # Map priority
-                priority = 1  # Default to low priority
-                if len(task) > PRIORITY_POS and task[PRIORITY_POS] is not None:
-                    priority = map_priority(task[PRIORITY_POS])
-                
-                # Write task to CSV
+                # Write task to CSV - always use priority 1 (lowest)
                 writer.writerow({
                     'TYPE': 'task',
                     'CONTENT': content,
-                    'PRIORITY': priority,
+                    'DESCRIPTION': description,
+                    'PRIORITY': 1,  # Default low priority
                     'DATE': due_date
                 })
                 
@@ -155,6 +157,12 @@ def main():
         print(f"Content: {first_task[3]}")
         print(f"Due Date: {first_task[5]}")
         print(f"Status: {first_task[8]}")
+        
+        # Show metadata if available
+        if len(first_task) > 12 and first_task[12]:
+            file_path, page = decode_metadata(first_task[12])
+            print(f"Source: {file_path}")
+            print(f"Page: {page}")
     
     # Create CSV file
     create_todoist_csv(tasks, output_file)
