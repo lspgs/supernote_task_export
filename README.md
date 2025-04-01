@@ -12,7 +12,7 @@ This tool helps you migrate tasks from Supernote SQLite database files to Todois
 ## Requirements
 
 - Python 3.6 or higher
-- Supernote SQLite3 module (included in Python standard library)
+- SQLite3 module (included in Python standard library)
 
 No external dependencies are required!
 
