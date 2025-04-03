@@ -89,7 +89,7 @@ def create_todoist_csv(tasks, output_file):
     
     try:
         with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=headers)
+            writer = csv.DictWriter(csvfile, fieldnames=headers, lineterminator='\n')
             writer.writeheader()
             
             for task in tasks:
@@ -114,12 +114,12 @@ def create_todoist_csv(tasks, output_file):
                 if not due_date and task[REMINDER_DATE_POS]:
                     due_date = convert_timestamp_to_date(task[REMINDER_DATE_POS])
                 
-                # Write task to CSV - always use priority 1 (lowest)
+                # Write task to CSV - always use priority 4 (lowest)
                 writer.writerow({
                     'TYPE': 'task',
                     'CONTENT': content,
                     'DESCRIPTION': description,
-                    'PRIORITY': 1,  # Default low priority
+                    'PRIORITY': 4,  # Default low priority
                     'DATE': due_date
                 })
                 

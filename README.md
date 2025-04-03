@@ -13,8 +13,8 @@ This tool helps you migrate tasks from Supernote SQLite database files to Todois
 
 - Python 3.6 or higher
 - SQLite3 module (included in Python standard library)
+- Supernote Partner app running on the same machine that is running this script 
 
-No external dependencies are required!
 
 ## Usage
 
@@ -32,21 +32,6 @@ If you don't specify an output file, it will create `todoist_import.csv` in the 
 4. Select the generated CSV file
 5. Follow the on-screen instructions to complete the import
 
-## Troubleshooting
-
-If you're having trouble with the extraction:
-
-1. Use the debugging script to examine your database structure:
-   ```bash
-   python sqlite_debug.py /path/to/your/database.db
-   ```
-
-2. This will show all tables, columns, and sample data to help identify the correct structure.
-
-3. For custom extraction, use the debugging script with extraction options:
-   ```bash
-   python sqlite_debug.py /path/to/database.db --extract --table TABLE_NAME --status-col STATUS_COLUMN --status-val STATUS_VALUE
-   ```
 
 ## How It Works
 
