@@ -43,6 +43,12 @@ The script:
 4. Extracts the Filepath and Page location to the Todoist description
 5. Creates a properly formatted CSV file for import
 
+## Sample CSV Output
+```csv
+TYPE,CONTENT,DESCRIPTION,PRIORITY,DATE
+task,Test,"Supernote Source: 20250330_Test.note, Page: 3",4,Apr 03 2025
+```
+
 ## Limitations
 
 - Currently extracts only active ("needsAction") tasks
